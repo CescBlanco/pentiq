@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+#Virtual environment
+pentiq_venv
+
+#Notebook file for testing
+#pruebas.ipynb
+
