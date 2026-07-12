@@ -32,6 +32,27 @@ def registrar_acceso(usuario_id):
         "usuario_id": usuario_id
     }).execute()
 
+    # Obtener accesos actuales
+    usuario = (
+        supabase
+        .table("usuarios")
+        .select("accesos")
+        .eq("id", usuario_id)
+        .execute()
+    )
+
+
+    accesos_actuales = usuario.data[0]["accesos"]
+
+
+    # Sumar uno
+    supabase.table("usuarios").update({
+        "accesos": accesos_actuales + 1
+    }).eq(
+        "id",
+        usuario_id
+    ).execute()
+
 
 
 def login(username, password):
