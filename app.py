@@ -78,7 +78,4 @@ if "usuario" not in st.session_state:
             )
 
             st.success("Usuario creado")
-            
-respuesta = supabase.table("usuarios").select("*").execute()
 
-st.write(respuesta.data)
