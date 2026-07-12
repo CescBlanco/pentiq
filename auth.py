@@ -24,14 +24,28 @@ def crear_usuario(username, password, nombre, apellido, sexo, edad, pais, email)
 
     return resultado
 
+
+
+def registrar_acceso(usuario_id):
+
+    supabase.table("accesos").insert({
+        "usuario_id": usuario_id
+    }).execute()
+
+
+
 def login(username, password):
 
-    usuario = supabase.table("usuarios") \
-        .select("*") \
-        .eq("username", username) \
+    usuario = (
+        supabase
+        .table("usuarios")
+        .select("*")
+        .eq("username", username)
         .execute()
+    )
 
 
+    # Usuario no encontrado
     if len(usuario.data) == 0:
         return None
 
@@ -46,6 +60,18 @@ def login(username, password):
 
 
     if password_correcta:
-        return datos
+
+        # Guardamos el acceso
+        registrar_acceso(datos["id"])
+
+        # Devolvemos solo los datos necesarios
+        return {
+            "id": datos["id"],
+            "username": datos["username"],
+            "nombre": datos["nombre"],
+            "apellido": datos["apellido"],
+            "pais": datos["pais"]
+        }
+
 
     return None
