@@ -1,6 +1,6 @@
 import streamlit as st
 
-from auth import login, crear_usuario
+from auth import login, crear_usuario, cerrar_acceso
 
 
 st.set_page_config(
@@ -193,9 +193,11 @@ else:
 
 
 
-    if st.sidebar.button(
-        "Cerrar sesión"
-    ):
+    if st.sidebar.button("Cerrar sesión"):
+
+        cerrar_acceso(
+            usuario["acceso_id"]
+        )
 
         del st.session_state.usuario
 

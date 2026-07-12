@@ -1,6 +1,6 @@
 import bcrypt
 from database import supabase
-
+from datetime import datetime
 
 def crear_usuario(username, password, nombre, apellido, sexo, edad, pais, email):
 
@@ -28,11 +28,22 @@ def crear_usuario(username, password, nombre, apellido, sexo, edad, pais, email)
 
 def registrar_acceso(usuario_id):
 
-    supabase.table("accesos").insert({
-        "usuario_id": usuario_id
-    }).execute()
+    # Crear registro de sesión
+    resultado = (
+        supabase
+        .table("accesos")
+        .insert({
+            "usuario_id": usuario_id
+        })
+        .execute()
+    )
 
-    # Obtener accesos actuales
+
+    # Guardamos el id de esta sesión
+    acceso_id = resultado.data[0]["id"]
+
+
+    # Obtener accesos actuales del usuario
     usuario = (
         supabase
         .table("usuarios")
@@ -45,7 +56,7 @@ def registrar_acceso(usuario_id):
     accesos_actuales = usuario.data[0]["accesos"]
 
 
-    # Sumar uno
+    # Sumar uno al contador total
     supabase.table("usuarios").update({
         "accesos": accesos_actuales + 1
     }).eq(
@@ -53,6 +64,9 @@ def registrar_acceso(usuario_id):
         usuario_id
     ).execute()
 
+
+    # Devolver la sesión creada
+    return acceso_id
 
 
 def login(username, password):
@@ -82,17 +96,48 @@ def login(username, password):
 
     if password_correcta:
 
-        # Guardamos el acceso
-        registrar_acceso(datos["id"])
+        acceso_id = registrar_acceso(datos["id"])
 
-        # Devolvemos solo los datos necesarios
         return {
             "id": datos["id"],
             "username": datos["username"],
             "nombre": datos["nombre"],
             "apellido": datos["apellido"],
-            "pais": datos["pais"]
+            "pais": datos["pais"],
+            "acceso_id": acceso_id
         }
 
 
     return None
+
+def cerrar_acceso(acceso_id):
+
+    ahora = datetime.now()
+
+
+    acceso = (
+        supabase
+        .table("accesos")
+        .select("fecha_acceso")
+        .eq("id", acceso_id)
+        .execute()
+    )
+
+
+    fecha_inicio = datetime.fromisoformat(
+        acceso.data[0]["fecha_acceso"]
+    )
+
+
+    tiempo = int(
+        (ahora - fecha_inicio).total_seconds()
+    )
+
+
+    supabase.table("accesos").update({
+        "fecha_fin": ahora.isoformat(),
+        "tiempo_segundos": tiempo
+    }).eq(
+        "id",
+        acceso_id
+    ).execute()
