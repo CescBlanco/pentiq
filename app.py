@@ -96,14 +96,24 @@ if "registro" not in st.session_state:
         "email": ""
     }
 
+if "nuevo_registro" not in st.session_state:
+    st.session_state.nuevo_registro = True
+
 # ======================================================
 # USUARIO NO LOGUEADO
 # ======================================================
 #   
 if "usuario" not in st.session_state:
 
-    option = st.segmented_control('\n\n', 
-                           ['Iniciar sesión', 'Crear cuenta'], default= 'Iniciar sesión')
+    option = st.segmented_control(
+    " ",
+    [
+        "Iniciar sesión",
+        "Crear cuenta"
+    ],
+    default="Iniciar sesión",
+    key="menu_auth"
+)
 
     # ----------------------------
     # LOGIN
@@ -160,6 +170,12 @@ if "usuario" not in st.session_state:
     # ----------------------------
 
     else:
+        if st.session_state.nuevo_registro:
+
+            limpiar_registro()
+
+            st.session_state.nuevo_registro = False
+
 
         izquierda, derecha = st.columns((1, 3))
 
@@ -172,7 +188,7 @@ if "usuario" not in st.session_state:
                     "Confirmación"
                 ],
                 icons=["1", "2", "3"],
-                key="registro_steps"
+                key=f"registro_steps_{st.session_state.nuevo_registro}"
             )
 
         with derecha:
@@ -304,8 +320,7 @@ if "usuario" not in st.session_state:
                         "Sexo",
                         [
                             "Hombre",
-                            "Mujer",
-                            "Otro"
+                            "Mujer"
                         ]
                     )
 
@@ -452,6 +467,7 @@ if "usuario" not in st.session_state:
 
                         limpiar_registro()
 
+                        st.session_state.nuevo_registro = True
 
                         st.rerun()
 
@@ -483,7 +499,9 @@ else:
         del st.session_state.usuario
 
         limpiar_registro()
-        
+
+        st.session_state.nuevo_registro = True
+
         st.rerun()
 
     st.subheader("🏠 Inicio")
