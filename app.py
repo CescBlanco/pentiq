@@ -51,6 +51,24 @@ def comprobar_fuerza_password(password):
 
     return puntos, requisitos
 
+def limpiar_registro():
+
+    st.session_state.registro = {
+        "username": "",
+        "password": "",
+        "nombre": "",
+        "apellido": "",
+        "sexo": "Hombre",
+        "edad": 18,
+        "pais": "",
+        "email": ""
+    }
+
+    # Reiniciar componente steps
+    if "registro_steps" in st.session_state:
+        del st.session_state["registro_steps"]
+
+
 st.set_page_config(
     page_title="Resultados fútbol",
     page_icon="⚽",
@@ -66,6 +84,7 @@ st.title("⚽ Resultados de las 5 grandes ligas")
 # ======================================================
 
 if "registro" not in st.session_state:
+
     st.session_state.registro = {
         "username": "",
         "password": "",
@@ -75,7 +94,7 @@ if "registro" not in st.session_state:
         "edad": 18,
         "pais": "",
         "email": ""
-    }  
+    }
 
 # ======================================================
 # USUARIO NO LOGUEADO
@@ -431,16 +450,8 @@ if "usuario" not in st.session_state:
                             "¡Cuenta creada correctamente!"
                         )
 
-                        st.session_state.registro = {
-                            "username": "",
-                            "password": "",
-                            "nombre": "",
-                            "apellido": "",
-                            "sexo": "Hombre",
-                            "edad": 18,
-                            "pais": "",
-                            "email": ""
-                        }
+                        limpiar_registro()
+
 
                         st.rerun()
 
@@ -471,6 +482,8 @@ else:
 
         del st.session_state.usuario
 
+        limpiar_registro()
+        
         st.rerun()
 
     st.subheader("🏠 Inicio")
