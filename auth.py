@@ -2,25 +2,43 @@ import bcrypt
 from database import supabase
 from datetime import datetime
 
-def crear_usuario(username, password, nombre, apellido, sexo, edad, pais, email):
+def crear_usuario(
+    username,
+    password,
+    nombre,
+    apellido,
+    sexo,
+    edad,
+    pais,
+    email
+):
+
+    if usuario_existe(username):
+        raise ValueError("El nombre de usuario ya existe.")
+
+    if email_existe(email):
+        raise ValueError("El correo electrónico ya está registrado.")
 
     password_hash = bcrypt.hashpw(
         password.encode("utf-8"),
         bcrypt.gensalt()
     ).decode("utf-8")
 
-
-    resultado = supabase.table("usuarios").insert({
-        "username": username,
-        "password_hash": password_hash,
-        "nombre": nombre,
-        "apellido": apellido,
-        "sexo": sexo,
-        "edad": edad,
-        "pais": pais,
-        "email": email
-    }).execute()
-
+    resultado = (
+        supabase
+        .table("usuarios")
+        .insert({
+            "username": username,
+            "password_hash": password_hash,
+            "nombre": nombre,
+            "apellido": apellido,
+            "sexo": sexo,
+            "edad": edad,
+            "pais": pais,
+            "email": email
+        })
+        .execute()
+    )
 
     return resultado
 
@@ -68,6 +86,29 @@ def registrar_acceso(usuario_id):
     # Devolver la sesión creada
     return acceso_id
 
+def usuario_existe(username):
+
+    usuario = (
+        supabase
+        .table("usuarios")
+        .select("id")
+        .eq("username", username)
+        .execute()
+    )
+
+    return len(usuario.data) > 0
+
+def email_existe(email):
+
+    usuario = (
+        supabase
+        .table("usuarios")
+        .select("id")
+        .eq("email", email)
+        .execute()
+    )
+
+    return len(usuario.data) > 0
 
 def login(username, password):
 
