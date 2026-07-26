@@ -4,6 +4,52 @@ import re
 
 from auth import login, crear_usuario, cerrar_acceso, usuario_existe, email_existe
 
+def comprobar_fuerza_password(password):
+
+    puntos = 0
+    requisitos = []
+
+    # Longitud
+    if len(password) >= 8:
+        puntos += 1
+        requisitos.append("✅ Mínimo 8 caracteres")
+    else:
+        requisitos.append("❌ Mínimo 8 caracteres")
+
+
+    # Mayúscula
+    if re.search(r"[A-Z]", password):
+        puntos += 1
+        requisitos.append("✅ Una letra mayúscula")
+    else:
+        requisitos.append("❌ Una letra mayúscula")
+
+
+    # Minúscula
+    if re.search(r"[a-z]", password):
+        puntos += 1
+        requisitos.append("✅ Una letra minúscula")
+    else:
+        requisitos.append("❌ Una letra minúscula")
+
+
+    # Número
+    if re.search(r"[0-9]", password):
+        puntos += 1
+        requisitos.append("✅ Un número")
+    else:
+        requisitos.append("❌ Un número")
+
+
+    # Símbolo
+    if re.search(r"[@$!%*?&]", password):
+        puntos += 1
+        requisitos.append("✅ Un símbolo (@$!%*?&)")
+    else:
+        requisitos.append("❌ Un símbolo (@$!%*?&)")
+
+
+    return puntos, requisitos
 
 st.set_page_config(
     page_title="Resultados fútbol",
@@ -133,38 +179,77 @@ if "usuario" not in st.session_state:
 
                 st.progress(33)
 
-                with st.form("paso1"):
+                st.subheader("🔐 Datos de acceso")
 
-                    username = st.text_input(
-                        "Nombre de usuario",
-                        value=st.session_state.registro["username"]
+
+                username = st.text_input(
+                    "Nombre de usuario",
+                    value=st.session_state.registro["username"]
+                )
+
+
+                password = st.text_input(
+                    "Contraseña",
+                    type="password"
+                )
+
+
+                puntos, requisitos = comprobar_fuerza_password(password)
+
+
+                if password:
+
+                    if puntos <= 2:
+
+                        st.error("🔴 Contraseña débil")
+
+                    elif puntos <= 4:
+
+                        st.warning("🟡 Contraseña media")
+
+                    else:
+
+                        st.success("🟢 Contraseña fuerte")
+
+
+                    st.progress(
+                        puntos / 5
                     )
 
-                    password = st.text_input(
-                        "Contraseña",
-                        type="password"
-                    )
 
-                    password2 = st.text_input(
-                        "Confirmar contraseña",
-                        type="password"
-                    )
+                    for requisito in requisitos:
 
-                    siguiente = st.form_submit_button(
-                        "Siguiente ➜"
-                    )
+                        st.caption(requisito)
+
+
+
+                password2 = st.text_input(
+                    "Confirmar contraseña",
+                    type="password"
+                )
+
+
+                siguiente = st.button(
+                    "Siguiente ➜"
+                )
+
 
                 if siguiente:
 
+
                     if username.strip() == "":
 
-                        st.error("Introduce un nombre de usuario.")
+                        st.error(
+                            "Introduce un nombre de usuario."
+                        )
 
-                    elif len(password) < 8:
+
+                    elif puntos < 5:
 
                         st.error(
-                            "La contraseña debe tener al menos 8 caracteres."
+                            "La contraseña debe cumplir todos los requisitos."
                         )
+
 
                     elif password != password2:
 
@@ -172,15 +257,18 @@ if "usuario" not in st.session_state:
                             "Las contraseñas no coinciden."
                         )
 
+
                     elif usuario_existe(username):
 
                         st.error(
                             "Ese usuario ya existe."
                         )
 
+
                     else:
 
-                        st.session_state.registro["username"] = username
+                        st.session_state.registro["username"] = username.strip().lower()
+
                         st.session_state.registro["password"] = password
 
                         s.next()
@@ -352,11 +440,20 @@ if "usuario" not in st.session_state:
 
                         st.session_state.usuario = usuario
 
-                        st.balloons()
-
                         st.success(
                             "¡Cuenta creada correctamente!"
                         )
+
+                        st.session_state.registro = {
+                            "username": "",
+                            "password": "",
+                            "nombre": "",
+                            "apellido": "",
+                            "sexo": "Hombre",
+                            "edad": 18,
+                            "pais": "",
+                            "email": ""
+                        }
 
                         st.rerun()
 
