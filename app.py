@@ -165,100 +165,100 @@ if "usuario" not in st.session_state:
             with s[0]:
 
                 st.progress(33)
-                with st.container():
-                    st.subheader("🔐 Datos de acceso")
+                
+                st.subheader("🔐 Datos de acceso")
 
 
-                    username = st.text_input(
-                        "Nombre de usuario",
-                        value=st.session_state.registro["username"]
+                username = st.text_input(
+                    "Nombre de usuario",
+                    value=st.session_state.registro["username"]
+                )
+
+
+                password = st.text_input(
+                    "Contraseña",
+                    type="password"
+                )
+
+
+                puntos, requisitos = comprobar_fuerza_password(password)
+
+
+                if password:
+
+                    if puntos <= 2:
+
+                        st.error("🔴 Contraseña débil")
+
+                    elif puntos <= 4:
+
+                        st.warning("🟡 Contraseña media")
+
+                    else:
+
+                        st.success("🟢 Contraseña fuerte")
+
+
+                    st.progress(
+                        puntos / 5
                     )
 
 
-                    password = st.text_input(
-                        "Contraseña",
-                        type="password"
-                    )
+                    for requisito in requisitos:
+
+                        st.caption(requisito)
 
 
-                    puntos, requisitos = comprobar_fuerza_password(password)
+
+                password2 = st.text_input(
+                    "Confirmar contraseña",
+                    type="password"
+                )
 
 
-                    if password:
-
-                        if puntos <= 2:
-
-                            st.error("🔴 Contraseña débil")
-
-                        elif puntos <= 4:
-
-                            st.warning("🟡 Contraseña media")
-
-                        else:
-
-                            st.success("🟢 Contraseña fuerte")
+                siguiente = st.button(
+                    "Siguiente ➜"
+                )
 
 
-                        st.progress(
-                            puntos / 5
+                if siguiente:
+
+
+                    if username.strip() == "":
+
+                        st.error(
+                            "Introduce un nombre de usuario."
                         )
 
 
-                        for requisito in requisitos:
+                    elif puntos < 5:
 
-                            st.caption(requisito)
-
-
-
-                    password2 = st.text_input(
-                        "Confirmar contraseña",
-                        type="password"
-                    )
+                        st.error(
+                            "La contraseña debe cumplir todos los requisitos."
+                        )
 
 
-                    siguiente = st.button(
-                        "Siguiente ➜"
-                    )
+                    elif password != password2:
+
+                        st.error(
+                            "Las contraseñas no coinciden."
+                        )
 
 
-                    if siguiente:
+                    elif usuario_existe(username):
+
+                        st.error(
+                            "Ese usuario ya existe."
+                        )
 
 
-                        if username.strip() == "":
+                    else:
 
-                            st.error(
-                                "Introduce un nombre de usuario."
-                            )
+                        st.session_state.registro["username"] = username.strip().lower()
 
+                        st.session_state.registro["password"] = password
 
-                        elif puntos < 5:
-
-                            st.error(
-                                "La contraseña debe cumplir todos los requisitos."
-                            )
-
-
-                        elif password != password2:
-
-                            st.error(
-                                "Las contraseñas no coinciden."
-                            )
-
-
-                        elif usuario_existe(username):
-
-                            st.error(
-                                "Ese usuario ya existe."
-                            )
-
-
-                        else:
-
-                            st.session_state.registro["username"] = username.strip().lower()
-
-                            st.session_state.registro["password"] = password
-
-                            s.next()
+                        s.next()
 
 
             # ------------------------------------------
