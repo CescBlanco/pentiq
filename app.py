@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_extras.steps import steps
 import re
 
-from auth import login, crear_usuario, cerrar_acceso, usuario_existe, email_existe
+from auth import login, crear_usuario, cerrar_acceso, usuario_existe, email_existe, actualizar_actividad, sesion_caducada
 
 def comprobar_fuerza_password(password):
 
@@ -119,7 +119,13 @@ if "usuario" not in st.session_state:
 
     # Detectar entrada al registro
     if option == "Iniciar sesión":
+        if st.session_state.get("sesion_expirada", False):
 
+            st.warning(
+                "Tu sesión ha caducado por inactividad. Vuelve a iniciar sesión."
+            )
+
+            del st.session_state["sesion_expirada"]
 
         with st.form("login_form"):
 
@@ -714,6 +720,23 @@ else:
 
     usuario = st.session_state.usuario
 
+    if sesion_caducada(usuario["acceso_id"]):
+
+        cerrar_acceso(usuario["acceso_id"])
+
+        del st.session_state.usuario
+
+        reiniciar_registro()
+
+        if "registro_iniciado" in st.session_state:
+            del st.session_state["registro_iniciado"]
+
+        # Mostrar aviso después del rerun
+        st.session_state.sesion_expirada = True
+
+        st.rerun()
+
+    actualizar_actividad(usuario["acceso_id"])
 
     st.sidebar.title(
         "Perfil"
