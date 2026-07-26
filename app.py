@@ -51,9 +51,15 @@ def comprobar_fuerza_password(password):
 
     return puntos, requisitos
 
-def limpiar_registro():
+# ======================================================
+# LIMPIAR REGISTRO COMPLETO
+# ======================================================
+
+def reiniciar_registro():
+
 
     st.session_state.registro = {
+
         "username": "",
         "password": "",
         "nombre": "",
@@ -62,11 +68,18 @@ def limpiar_registro():
         "edad": 18,
         "pais": "",
         "email": ""
+
     }
 
-    # Reiniciar componente steps
-    if "registro_steps" in st.session_state:
-        del st.session_state["registro_steps"]
+
+    # borrar estado del componente steps
+
+    for key in list(st.session_state.keys()):
+
+        if key.startswith("registro_steps"):
+
+            del st.session_state[key]
+
 
 
 st.set_page_config(
@@ -76,28 +89,17 @@ st.set_page_config(
 )
 
 
-st.title("⚽ Resultados de las 5 grandes ligas")
+st.title("⚽ PENTIQ")
 
 
 # ======================================================
-# INICIALIZAR SESSION STATE
+# SESSION STATE INICIAL
 # ======================================================
 
 if "registro" not in st.session_state:
 
-    st.session_state.registro = {
-        "username": "",
-        "password": "",
-        "nombre": "",
-        "apellido": "",
-        "sexo": "Hombre",
-        "edad": 18,
-        "pais": "",
-        "email": ""
-    }
+    reiniciar_registro()
 
-if "nuevo_registro" not in st.session_state:
-    st.session_state.nuevo_registro = True
 
 # ======================================================
 # USUARIO NO LOGUEADO
@@ -106,31 +108,32 @@ if "nuevo_registro" not in st.session_state:
 if "usuario" not in st.session_state:
 
     option = st.segmented_control(
-    " ",
-    [
-        "Iniciar sesión",
-        "Crear cuenta"
-    ],
-    default="Iniciar sesión",
-    key="menu_auth"
-)
+        " ",
+        [
+            "Iniciar sesión",
+            "Crear cuenta"
+        ],
+        default="Iniciar sesión",
+        key="menu_auth"
+        )
 
-    # ----------------------------
-    # LOGIN
-    # ----------------------------
-
+    # Detectar entrada al registro
     if option == "Iniciar sesión":
 
-        with st.form("login"):
+
+        with st.form("login_form"):
+
 
             username = st.text_input(
                 "Usuario"
             )
 
+
             password = st.text_input(
                 "Contraseña",
                 type="password"
             )
+
 
             entrar = st.form_submit_button(
                 "Entrar"
@@ -148,16 +151,20 @@ if "usuario" not in st.session_state:
 
             if usuario:
 
+
                 st.session_state.usuario = usuario
+
 
                 st.success(
                     f"Bienvenido {usuario['nombre']} 👋"
                 )
 
+
                 st.rerun()
 
 
             else:
+
 
                 st.error(
                     "Usuario o contraseña incorrectos"
@@ -165,73 +172,125 @@ if "usuario" not in st.session_state:
 
 
 
-    # ----------------------------
+    # ==================================================
     # REGISTRO
-    # ----------------------------
+    # ==================================================
 
     else:
-        if st.session_state.nuevo_registro:
-
-            limpiar_registro()
-
-            st.session_state.nuevo_registro = False
 
 
-        izquierda, derecha = st.columns((1, 3))
+        # Cada vez que entra en crear cuenta
+        # comprobamos si hay que empezar limpio
+
+        if "registro_iniciado" not in st.session_state:
+
+
+            reiniciar_registro()
+
+
+            st.session_state.registro_iniciado = True
+
+
+
+        izquierda, derecha = st.columns(
+            (1,3)
+        )
+
+
 
         with izquierda:
 
+
             s = steps(
+
                 [
                     "Acceso",
                     "Datos",
                     "Confirmación"
                 ],
-                icons=["1", "2", "3"],
-                key=f"registro_steps_{st.session_state.nuevo_registro}"
+
+                icons=[
+                    "1",
+                    "2",
+                    "3"
+                ],
+
+                key="registro_steps"
+
             )
+
+
 
         with derecha:
 
-            # ------------------------------------------
+
+
+            # ==========================================
             # PASO 1
-            # ------------------------------------------
+            # ==========================================
+
 
             with s[0]:
 
+
                 st.progress(33)
-                
-                st.subheader("🔐 Datos de acceso")
+
+
+                st.subheader(
+                    "🔐 Datos de acceso"
+                )
+
 
 
                 username = st.text_input(
+
                     "Nombre de usuario",
+
                     value=st.session_state.registro["username"]
+
                 )
+
 
 
                 password = st.text_input(
+
                     "Contraseña",
+
                     type="password"
+
                 )
 
 
-                puntos, requisitos = comprobar_fuerza_password(password)
+
+                puntos, requisitos = comprobar_fuerza_password(
+                    password
+                )
+
 
 
                 if password:
 
+
                     if puntos <= 2:
 
-                        st.error("🔴 Contraseña débil")
+                        st.error(
+                            "🔴 Contraseña débil"
+                        )
+
 
                     elif puntos <= 4:
 
-                        st.warning("🟡 Contraseña media")
+                        st.warning(
+                            "🟡 Contraseña media"
+                        )
+
 
                     else:
 
-                        st.success("🟢 Contraseña fuerte")
+                        st.success(
+                            "🟢 Contraseña fuerte"
+                        )
+
 
 
                     st.progress(
@@ -239,24 +298,37 @@ if "usuario" not in st.session_state:
                     )
 
 
+
                     for requisito in requisitos:
 
-                        st.caption(requisito)
+                        st.caption(
+                            requisito
+                        )
 
 
 
                 password2 = st.text_input(
+
                     "Confirmar contraseña",
+
                     type="password"
+
                 )
+
 
 
                 siguiente = st.button(
-                    "Siguiente ➜"
+
+                    "Siguiente ➜",
+
+                    key="siguiente_paso1"
+
                 )
 
 
+
                 if siguiente:
+
 
 
                     if username.strip() == "":
@@ -289,227 +361,436 @@ if "usuario" not in st.session_state:
 
                     else:
 
-                        st.session_state.registro["username"] = username.strip().lower()
+
+
+                        st.session_state.registro["username"] = (
+                            username.strip().lower()
+                        )
+
 
                         st.session_state.registro["password"] = password
 
+
                         s.next()
 
-
-            # ------------------------------------------
+            # ==========================================
             # PASO 2
-            # ------------------------------------------
+            # ==========================================
+
 
             with s[1]:
 
+
                 st.progress(66)
 
-                with st.form("paso2"):
+
+                with st.form("paso2_form"):
+
 
                     nombre = st.text_input(
+
                         "Nombre",
+
                         value=st.session_state.registro["nombre"]
+
                     )
+
 
                     apellido = st.text_input(
+
                         "Apellido",
+
                         value=st.session_state.registro["apellido"]
+
                     )
 
+
                     sexo = st.selectbox(
+
                         "Sexo",
+
                         [
                             "Hombre",
                             "Mujer"
                         ]
+
                     )
+
 
                     edad = st.number_input(
+
                         "Edad",
+
                         min_value=1,
+
                         max_value=120,
+
                         value=st.session_state.registro["edad"]
+
                     )
 
+
                     pais = st.text_input(
+
                         "País",
+
                         value=st.session_state.registro["pais"]
+
                     )
+
 
                     c1, c2 = st.columns(2)
 
+
+
                     with c1:
 
+
                         volver = st.form_submit_button(
+
                             "⬅ Atrás"
+
                         )
+
+
 
                     with c2:
 
+
                         siguiente = st.form_submit_button(
+
                             "Siguiente ➜"
+
                         )
+
+
 
                 if volver:
 
+
                     s.previous()
+
+
 
                 if siguiente:
 
-                    if nombre == "" or apellido == "" or pais == "":
+
+
+                    if nombre.strip() == "" or apellido.strip() == "" or pais.strip() == "":
+
 
                         st.error(
+
                             "Completa todos los campos."
+
                         )
+
 
                     else:
 
+
+
                         st.session_state.registro["nombre"] = nombre
+
                         st.session_state.registro["apellido"] = apellido
+
                         st.session_state.registro["sexo"] = sexo
+
                         st.session_state.registro["edad"] = edad
+
                         st.session_state.registro["pais"] = pais
+
+
 
                         s.next()
 
 
-            # ------------------------------------------
+
+
+
+            # ==========================================
             # PASO 3
-            # ------------------------------------------
+            # ==========================================
+
 
             with s[2]:
 
+
                 st.progress(100)
 
-                with st.form("paso3"):
+
+
+                with st.form("paso3_form"):
+
+
 
                     email = st.text_input(
+
                         "Correo electrónico",
+
                         value=st.session_state.registro["email"]
+
                     )
+
+
 
                     st.divider()
 
-                    st.subheader("Resumen")
+
+
+                    st.subheader(
+
+                        "Resumen"
+
+                    )
+
+
 
                     st.write(
+
                         f"**Usuario:** {st.session_state.registro['username']}"
+
                     )
 
+
                     st.write(
+
                         f"**Nombre:** {st.session_state.registro['nombre']} {st.session_state.registro['apellido']}"
+
                     )
 
+
                     st.write(
+
                         f"**País:** {st.session_state.registro['pais']}"
+
                     )
+
+
 
                     c1, c2 = st.columns(2)
 
+
+
                     with c1:
 
+
                         volver = st.form_submit_button(
+
                             "⬅ Atrás"
+
                         )
+
+
 
                     with c2:
 
+
                         crear = st.form_submit_button(
+
                             "Crear cuenta"
+
                         )
+
+
+
 
                 if volver:
 
+
                     s.previous()
+
+
+
+
 
                 if crear:
 
+
+
                     if not re.match(
+
                         r"[^@]+@[^@]+\.[^@]+",
+
                         email
+
                     ):
 
+
+
                         st.error(
+
                             "Introduce un correo válido."
+
                         )
+
+
 
                     elif email_existe(email):
 
+
                         st.error(
+
                             "Ese correo ya está registrado."
+
                         )
+
+
 
                     else:
 
+
+
                         st.session_state.registro["email"] = email
 
+
+
                         crear_usuario(
+
                             st.session_state.registro["username"],
+
                             st.session_state.registro["password"],
+
                             st.session_state.registro["nombre"],
+
                             st.session_state.registro["apellido"],
+
                             st.session_state.registro["sexo"],
+
                             st.session_state.registro["edad"],
+
                             st.session_state.registro["pais"],
+
                             st.session_state.registro["email"]
+
                         )
 
+
+
                         usuario = login(
+
                             st.session_state.registro["username"],
+
                             st.session_state.registro["password"]
+
                         )
+
+
 
                         st.session_state.usuario = usuario
 
+
+
                         st.success(
+
                             "¡Cuenta creada correctamente!"
+
                         )
 
-                        limpiar_registro()
 
-                        st.session_state.nuevo_registro = True
+
+                        # LIMPIAR TODO EL REGISTRO
+
+                        reiniciar_registro()
+
+
+
+                        # Permitir crear otra cuenta limpia después
+
+                        if "registro_iniciado" in st.session_state:
+
+                            del st.session_state["registro_iniciado"]
+
+
 
                         st.rerun()
-
-
+     
 # ======================================================
 # USUARIO LOGUEADO
 # ======================================================
 
 else:
 
+
     usuario = st.session_state.usuario
 
-    st.sidebar.title("Perfil")
+
+    st.sidebar.title(
+        "Perfil"
+    )
+
 
     st.sidebar.write(
         f"👤 {usuario['nombre']} {usuario['apellido']}"
     )
 
+
     st.sidebar.write(
         f"🌍 {usuario['pais']}"
     )
 
-    if st.sidebar.button("Cerrar sesión"):
+
+
+    if st.sidebar.button(
+        "Cerrar sesión"
+    ):
+
+
 
         cerrar_acceso(
+
             usuario["acceso_id"]
+
         )
+
+
+        # borrar usuario actual
 
         del st.session_state.usuario
 
-        limpiar_registro()
 
-        st.session_state.nuevo_registro = True
+
+        # borrar todos los datos del registro
+
+        reiniciar_registro()
+
+
+
+        # borrar la marca de registro iniciado
+
+        if "registro_iniciado" in st.session_state:
+
+            del st.session_state["registro_iniciado"]
+
+
+
+        # volver al menú inicial
+
+        st.session_state.menu_auth = "Iniciar sesión"
+
+
 
         st.rerun()
 
-    st.subheader("🏠 Inicio")
 
-    st.write(
-        f"Bienvenido **{usuario['nombre']}**."
+
+
+    st.subheader(
+        "🏠 Inicio"
     )
 
+
+
+    st.write(
+
+        f"Bienvenido **{usuario['nombre']}**."
+
+    )
+
+
+
     st.info(
+
         "Aquí aparecerán los resultados de la Premier League, LaLiga, Serie A, Bundesliga y Ligue 1."
+
     )
